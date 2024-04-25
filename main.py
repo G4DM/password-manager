@@ -4,30 +4,35 @@
 
 from cryptography.fernet import Fernet
 
-master_password = input("What is the master password?: ")
+# This function was needed to create the key.key file
 
-def write_key():
+'''def write_key():
     key = Fernet.generate_key()
     with open("key.key", "wb") as key_file:
-        key_file.write(key)
+        key_file.write(key)'''
 
-# This password is used to encrypt the other passwords, even if the password typed is incorrect, it will still show the passwords,
-# but encrypted. So the user still has access to the usernames and passwords, but these are encrypted so you need to have
-# the master password to be able to access the passwords.
+def load_key():
+    file =  open("key.key", "rb")
+    key = file.read()
+    file.close()
+    return key
 
-def add():
+key = load_key()
+fer = Fernet(key)
+
+def add():  
     name = input("Account name: ")
     pwd = input("Password: ")
 
     with open("passwords.txt", "a") as f:
-        f.write(name + " | " + pwd + "\n")
+        f.write(name + " | " + fer.encrypt(pwd.encode()).decode() + "\n")
 
 def view():
     with open("passwords.txt", "r") as f:
         for line in f.readlines():
             data = line.rstrip()
             user, pwd = data.split(" | ")
-            print(f"User: {user} | Password: {pwd}")
+            print(f"User: {user} | Password: {fer.decrypt(pwd.encode()).decode()}")
 
 while True:
     mode = input("Would you like to add (add) a new password, view (view) existing ones or quit (q) the application?: ").lower()
